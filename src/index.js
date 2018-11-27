@@ -1,11 +1,13 @@
 const qs = document.querySelector.bind(document)
 const ce = document.createElement.bind(document)
-const tableBody = document.querySelector('#table-body')
-const formName = document.querySelector('[type="name"]')
-const formBreed = document.querySelector('[type="breed"]')
-const formSex = document.querySelector('[type="sex"]')
-const formSubmit = document.querySelector('[type="submit"]')
-// const editButton = ce('button')
+const tableBody = qs('#table-body')
+const formName = qs('.name-field')
+const formBreed = qs('[type="breed"]')
+const formSex = qs('[type="sex"]')
+const formSubmit = qs('[type="submit"]')
+
+// Data
+let selectedDog;
 
 const render = function(){
 
@@ -14,12 +16,12 @@ const render = function(){
       return response.json()
     })
     .then(function(dogs){
-      console.log(dogs)
       renderDogs(dogs)
     })
 }
 
 const renderDogs = function(dogs){
+  tableBody.innerHTML = ''
   dogs.forEach(function(dog){
     const dogRow = ce('tr')
     const dogName = ce('td')
@@ -33,14 +35,10 @@ const renderDogs = function(dogs){
     editButton.innerHTML = 'Edit Dog'
     editButton.id = dog.id
     editButton.addEventListener('click',function(e){
-      renderDogForm(dog)
+      selectedDog = dog
+      renderDogForm()
     })
-    // dogRow.innerHTML = `
-    //   <td></td>
-    //   <td></td>
-    //   <td></td>
-    //   <td></td>
-    // `
+
     tableBody.append(dogRow)
     dogRow.append(dogName)
     dogRow.append(dogBreed)
@@ -50,28 +48,31 @@ const renderDogs = function(dogs){
   })
 };
 
-const renderDogForm = function(dog){
-  formName.value = dog.name
-  formBreed.value = dog.breed
-  formSex.value = dog.sex
-  formSubmit.addEventListener('click', function(e){
-    updateDog(dog)
-    formName.value = ''
-    formBreed.value = ''
-    formSex.value = ''
-  })
+const renderDogForm = function(){
+  formName.value = selectedDog.name
+  formBreed.value = selectedDog.breed
+  formSex.value = selectedDog.sex
+
 }
 
-const updateDog = function(dog){
-  fetch(`http://localhost:3000/dogs/${dog.id}` , {
+formSubmit.addEventListener('click', function(e){
+  e.preventDefault()
+  updateDog()
+  formName.value = ''
+  formBreed.value = ''
+  formSex.value = ''
+})
+
+const updateDog = function(){
+  fetch(`http://localhost:3000/dogs/${selectedDog.id}` , {
     method: 'PATCH',
     headers: {
       'Content-Type':'application/json'
     },
     body: JSON.stringify({
-      name: document.querySelector('.name-field').value,
-      breed: document.querySelector('.breed-field').value,
-      sex: document.querySelector('.sex-field').value
+      name: formName.value,
+      breed: formBreed.value,
+      sex: formSex.value
     })
   })
     .then(render)
